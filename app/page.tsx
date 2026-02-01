@@ -1,9 +1,3 @@
- 
-
-export default function Home() {
-  return (
-   <>
-   <div>homepage</div>
-   </>
-  );
+export default function HomePage() {
+  return <h1>Next.js + Hono API</h1>;
 }
