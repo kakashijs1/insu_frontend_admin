@@ -5,6 +5,7 @@ import { RegisterDto, LoginDto } from "@/server/dto/auth.dto";
 import { toResult } from "lyney";
 import { env } from "@/config/env";
 import { verifyAccessToken } from "@/server/libs/jwt";
+import { z } from "zod";
 
 const REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60; // 30 days
 
