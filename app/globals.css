@@ -1,26 +1,146 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-primary: #0050a0;
+
+  /* Secondary */
+  --color-secondary: #0077cc;
+  --color-teal: #0099a8;
+  --color-accent-orange: #ff9500;
+
+  /* Accent */
+  --color-accent-amber: #f5a623;
+  --color-accent-lime: #cddc39;
+  --color-accent-red: #e53935;
+
+  /* Background */
+  --color-bg-light: #f5f7fa;
+  --color-bg-soft: #e9eef4;
+  --color-bg-white: #ffffff;
+
+  /* Neutral */
+  --color-text-dark: #1a1a1a;
+  --color-text-medium: #6b778c;
+  --color-border-light: #cfd6e0;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.primary-btn {
+    @apply w-full rounded-2xl bg-primary px-4 py-3 text-sm font-semibold uppercase tracking-wider text-white transition duration-200 hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-teal flex items-center justify-center gap-2
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.secondary-btn {
+    @apply bg-secondary text-white p-2 rounded-md cursor-pointer
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.accent-btn {
+    @apply bg-white text-secondary p-2 rounded-md cursor-pointer
+}
+
+.text-input {
+    @apply w-full rounded-2xl border border-border-light bg-white/80 px-4 py-3 text-sm text-text-dark placeholder:text-text-medium transition duration-200 focus:border-teal focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal pl-11
+}
+
+.alert-error {
+    @apply rounded-2xl border border-accent-red/40 bg-accent-red/10 px-4 py-2 text-xs text-accent-red
+}
+
+.input-wrapper {
+    @apply relative
+}
+
+.otp-digits-grid {
+    @apply grid grid-cols-6 gap-3
+}
+
+.otp-digit-input {
+    @apply aspect-square w-full rounded-2xl border border-border-light bg-white/90 text-center text-xl font-semibold text-text-dark transition duration-150 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal disabled:cursor-not-allowed
+}
+
+.otp-button {
+    @apply absolute right-2 top-1/2 -translate-y-1/2 rounded-2xl bg-secondary px-4 py-1.5 text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-white transition duration-150 hover:bg-primary disabled:cursor-not-allowed disabled:bg-border-light disabled:text-text-medium flex items-center gap-1.5
+}
+
+.input-icon {
+    @apply pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-secondary opacity-80
+}
+
+.input-label {
+    @apply text-sm font-medium text-text-dark
+}
+
+.checkbox-input {
+    accent-color: var(--color-primary);
+    @apply h-4 w-4 rounded border border-border-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal
+}
+
+.navbar-shell {
+    @apply sticky top-0 z-30 w-full border-b border-border-light/60 bg-white/90 backdrop-blur-xl supports-[backdrop-filter]:bg-white/80 shadow-lg;
+}
+
+.navbar-container {
+    @apply mx-auto flex h-20 max-w-7xl items-center gap-6 px-5 sm:px-8 lg:px-10;
+}
+
+.nav-link {
+    @apply rounded-full px-4 py-2 text-sm font-semibold text-text-dark tracking-wide transition-colors duration-150 hover:bg-bg-soft hover:text-primary;
+}
+
+.nav-utility-btn {
+    @apply flex items-center gap-2 rounded-full border border-border-light/80 bg-white px-3.5 py-2 text-sm font-semibold text-text-dark transition-colors duration-150 hover:border-secondary hover:text-primary;
+}
+
+.nav-icon-btn {
+    @apply flex h-10 w-10 items-center justify-center rounded-full border border-border-light/70 bg-white/90 text-text-dark shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-secondary hover:text-primary;
+}
+
+.nav-drawer {
+    @apply border-t border-border-light/80 bg-white px-4 py-4 shadow-lg sm:px-6;
+}
+
+.nav-drawer-link {
+    @apply block rounded-xl px-3 py-2 text-sm font-semibold text-text-dark transition-colors duration-150 hover:bg-bg-soft;
+}
+
+.nav-drawer-support {
+    @apply grid gap-2 rounded-xl bg-bg-soft/70 p-3;
+}
+
+.nav-cta-primary {
+    @apply h-11 min-w-[150px] rounded-2xl bg-linear-to-r from-primary via-secondary to-primary px-5 py-3 text-sm font-semibold uppercase tracking-wider text-white shadow-[0_16px_40px_rgba(0,80,160,0.25)] transition duration-200 hover:shadow-[0_20px_55px_rgba(0,80,160,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-teal flex items-center justify-center gap-2;
+}
+
+.nav-utility-group {
+    @apply flex items-center gap-3 rounded-full border border-border-light/70 bg-white px-3 py-1.5 shadow-sm;
+}
+
+.nav-utility-secondary {
+    @apply flex items-center gap-2 rounded-full border border-border-light/80 bg-bg-soft px-3.5 py-2 text-sm font-semibold text-text-dark transition-colors duration-150 hover:border-secondary hover:text-primary;
+}
+
+.promo-swiper {
+    --swiper-theme-color: var(--color-primary);
+}
+
+.promo-swiper .swiper-pagination-bullet {
+    background: var(--color-primary);
+    opacity: 0.25;
+}
+
+.promo-swiper .swiper-pagination-bullet-active {
+    opacity: 1;
+}
+
+.promo-swiper .swiper-button-prev,
+.promo-swiper .swiper-button-next {
+    color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 9999px;
+    width: 44px;
+    height: 44px;
+    box-shadow: 0 12px 30px rgba(0, 80, 160, 0.18);
+}
+
+.promo-swiper .swiper-button-prev:after,
+.promo-swiper .swiper-button-next:after {
+    font-size: 16px;
 }

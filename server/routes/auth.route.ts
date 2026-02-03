@@ -14,5 +14,6 @@ authApp.post("/register", authController.register);
 authApp.post("/login", authController.login);
 authApp.post("/refresh", authController.refresh);
 authApp.post("/logout", authController.logout);
+authApp.get("/me", authController.me);
 
 export default authApp;
