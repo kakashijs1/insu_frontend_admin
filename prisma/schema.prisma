@@ -3,9 +3,120 @@ generator client {
   output   = "../app/generated/prisma"
 }
 
+generator prismabox {
+  provider                    = "prismabox"
+  typeboxImportDependencyName = "elysia"
+  typeBoxImportVariableName   = "t"
+  inputModel                  = true
+  output                      = "../app/generated/prismabox"
+}
+
 datasource db {
   provider = "postgresql"
 }
+
+// ──────────────────────────────────────────────
+// All models (auto-synced from customer_frontend)
+// DO NOT EDIT — run `bun run sync:schema` to update
+// ──────────────────────────────────────────────
+
+// ──────────────────────────────────────────────
+// Customer tables (auto-synced from customer_frontend)
+// DO NOT EDIT — run `bun run sync:schema` to update
+// ──────────────────────────────────────────────
+
+model Customer {
+  id             String         @id @default(uuid())
+  name           String
+  phone          String         @unique
+  password       String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  refreshTokens  RefreshToken[]
+  quoteRequests  QuoteRequest[]
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  jti        String   @unique
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  revoked    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+}
+
+enum QuoteStatus {
+  PENDING
+  REVIEWING
+  QUOTED
+  APPROVED
+  REJECTED
+  EXPIRED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  MOBILE_BANKING
+  QR_PROMPTPAY
+}
+
+model QuoteRequest {
+  id               String         @id @default(uuid())
+  customerId       String
+  customer         Customer       @relation(fields: [customerId], references: [id])
+  tier             String
+  brand            String
+  model            String
+  year             Int
+  variant          String
+  firstName        String
+  lastName         String
+  phone            String
+  referralCode     String?
+  status           QuoteStatus    @default(PENDING)
+  documents        Document[]
+  commissions      AffiliateCommission[]
+  insuranceCompany String?
+  premiumAmount    Float?
+  purchaseDate     DateTime?
+  expiryDate       DateTime?
+  paymentMethod    PaymentMethod?
+  paymentEvidence    String?
+  policyDocumentUrl  String?
+  reviewedById       String?
+  reviewedBy       User?          @relation("ReviewedQuotes", fields: [reviewedById], references: [id])
+  reviewedAt       DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([customerId])
+  @@index([referralCode])
+  @@index([status])
+}
+
+model Document {
+  id             String       @id @default(uuid())
+  quoteRequestId String
+  quoteRequest   QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+  type           String
+  fileName       String
+  cloudinaryUrl  String
+  publicId       String
+  mimeType       String
+  fileSize       Int
+  createdAt      DateTime     @default(now())
+
+  @@index([quoteRequestId])
+}
+
+// ──────────────────────────────────────────────
+// Admin tables
+// ──────────────────────────────────────────────
 
 enum UserRole {
   Employee
@@ -14,14 +125,64 @@ enum UserRole {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  username  String
-  email     String   @unique
-  password  String
-  role      UserRole @default(Employee) // Employee, Super, Affiliate
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String              @id @default(uuid())
+  username          String
+  email             String              @unique
+  password          String
+  role              UserRole            @default(Employee)
+  referralCode      String?             @unique
+  fullName          String?
+  phone             String?
+  bankName          String?
+  bankAccountNumber String?
+  bankAccountName   String?
+  commissionRate    Float?
+  passwordChanged   Boolean             @default(false)
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  refreshTokens     AdminRefreshToken[]
+  reviewedQuotes    QuoteRequest[]      @relation("ReviewedQuotes")
+  commissions       AffiliateCommission[]
 
-  @@map("users")
+  @@map("admin_users")
+}
+
+model AdminRefreshToken {
+  id        String   @id @default(uuid())
+  jti       String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("admin_refresh_tokens")
+}
+
+enum CommissionStatus {
+  PENDING
+  PAID
+}
+
+model AffiliateCommission {
+  id               String           @id @default(uuid())
+  quoteRequestId   String
+  quoteRequest     QuoteRequest     @relation(fields: [quoteRequestId], references: [id])
+  affiliateId      String
+  affiliate        User             @relation(fields: [affiliateId], references: [id])
+  premiumAmount    Float
+  commissionRate   Float
+  commissionAmount Float
+  status           CommissionStatus @default(PENDING)
+  paymentEvidence  String?
+  paidAt           DateTime?
+  paidById         String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([affiliateId])
+  @@index([quoteRequestId])
+  @@map("admin_affiliate_commissions")
 }

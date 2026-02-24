@@ -12,9 +12,7 @@ const EnvSchema = z.object({
 
   JWT_ACCESS_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),
-
-  JWT_ACCESS_TTL: z.string(), // e.g. 10m
-  JWT_REFRESH_TTL: z.string(), // e.g. 30d
+  CLOUDINARY_URL: z.string().startsWith("cloudinary://"),
 });
 
 /**
@@ -39,7 +37,6 @@ export const env = Object.freeze({
   JWT: {
     ACCESS_SECRET: parsed.data.JWT_ACCESS_SECRET,
     REFRESH_SECRET: parsed.data.JWT_REFRESH_SECRET,
-    ACCESS_TTL: parsed.data.JWT_ACCESS_TTL,
-    REFRESH_TTL: parsed.data.JWT_REFRESH_TTL,
   },
+  CLOUDINARY_URL: parsed.data.CLOUDINARY_URL,
 });
