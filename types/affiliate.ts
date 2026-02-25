@@ -80,7 +80,7 @@ export interface AffiliateCaseDetail {
   reviewedAt: string | Date | null;
   createdAt: string | Date;
   updatedAt: string | Date;
-  commissions: Omit<AffiliateCommission, "quoteRequest">[];
+  commissions: Omit<AffiliateCommission, "quoteRequest" | "paidById">[];
   customer: {
     id: string;
     name: string;

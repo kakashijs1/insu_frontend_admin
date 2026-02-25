@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { verifyAccessToken } from "@/utils/jwt";
 
 const ACCESS_TOKEN_KEY = "admin_access_token";
 const REFRESH_TOKEN_KEY = "admin_refresh_token";
@@ -54,10 +55,13 @@ const getAuthState = async (): Promise<AuthState> => {
   const token = await getAccessTokenFromCookies();
   if (!token) return { isLoggedIn: false, userId: null, role: null };
 
-  const { verifyAccessToken } = await import("@/utils/jwt");
   const result = await verifyAccessToken(token);
   if (result.ok) {
-    return { isLoggedIn: true, userId: result.data.sub, role: result.data.role };
+    return {
+      isLoggedIn: true,
+      userId: result.data.sub,
+      role: result.data.role,
+    };
   }
 
   return { isLoggedIn: false, userId: null, role: null };

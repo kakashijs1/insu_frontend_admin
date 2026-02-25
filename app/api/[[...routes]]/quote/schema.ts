@@ -22,4 +22,8 @@ export const quoteSchema = {
       t.Literal("EXPIRED"),
     ]),
   }),
+  "installment.pay": t.Object({
+    amountPaid: t.Number(),
+    paymentEvidence: t.Optional(t.String()),
+  }),
 };

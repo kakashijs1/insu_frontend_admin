@@ -19,8 +19,8 @@ async function signIn(
   _prevState: SignInState,
   formData: FormData,
 ): Promise<SignInState> {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  const email = String(formData.get("email")).trim();
+  const password = String(formData.get("password")).trim();
 
   if (!email || !password) {
     return { success: false, message: "Please fill in all fields" };

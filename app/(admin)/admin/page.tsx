@@ -1,15 +1,123 @@
-import { redirect } from "next/navigation";
 import { getQuoteRequests, getQuoteStats } from "@/services/quote";
+import { getMyDashboard } from "@/services/affiliate";
 import { getAuthState } from "@/utils/auth";
 import Link from "next/link";
-import { FileText, Clock, CheckCircle2, Handshake, Eye } from "lucide-react";
+import {
+  FileText,
+  Clock,
+  CheckCircle2,
+  Handshake,
+  Eye,
+  Briefcase,
+  Wallet,
+  TrendingUp,
+} from "lucide-react";
 import { STATUS_CONFIG } from "@/types/quote";
 import { formatThaiDate } from "@/utils/format";
+import type { AffiliateDashboardData } from "@/types/affiliate";
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("th-TH", {
+    style: "currency",
+    currency: "THB",
+    minimumFractionDigits: 0,
+  }).format(amount);
+}
+
+function AffiliateDashboard({ data }: { data: AffiliateDashboardData }) {
+  const statCards = [
+    {
+      label: "เคสทั้งหมด",
+      value: data.totalCases.toLocaleString("th-TH"),
+      icon: Briefcase,
+      cls: "text-info bg-info-light",
+    },
+    {
+      label: "อนุมัติแล้ว",
+      value: data.approvedCases.toLocaleString("th-TH"),
+      icon: CheckCircle2,
+      cls: "text-success bg-success-light",
+    },
+    {
+      label: "คอมมิชชั่นรวม",
+      value: formatCurrency(data.totalCommission),
+      icon: TrendingUp,
+      cls: "text-teal bg-teal/10",
+    },
+    {
+      label: "รอจ่าย",
+      value: formatCurrency(data.pendingCommission),
+      icon: Wallet,
+      cls: "text-warning bg-warning-light",
+    },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-text-dark">Dashboard</h1>
+        <p className="text-text-medium text-sm mt-1">
+          สรุปข้อมูลเคสและค่าคอมมิชชั่นของคุณ
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {statCards.map((stat) => (
+          <div
+            key={stat.label}
+            className="bg-white p-6 rounded-2xl border border-border-light shadow-sm"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-text-medium">
+                  {stat.label}
+                </p>
+                <p className="text-2xl font-bold text-text-dark mt-1">
+                  {stat.value}
+                </p>
+              </div>
+              <div className={`${stat.cls} p-3 rounded-xl`}>
+                <stat.icon size={24} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex gap-4">
+        <Link
+          href="/admin/my-cases"
+          className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-secondary"
+        >
+          <Briefcase size={16} />
+          ดูเคสทั้งหมด
+        </Link>
+        <Link
+          href="/admin/my-commissions"
+          className="inline-flex items-center gap-2 rounded-xl border border-border-light bg-white px-5 py-2.5 text-sm font-semibold text-text-dark transition hover:bg-bg-light"
+        >
+          <Wallet size={16} />
+          ดูค่าคอมมิชชั่น
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 export default async function AdminPage() {
   const authState = await getAuthState();
+
   if (authState.role === "Affiliate") {
-    redirect("/admin/my-cases");
+    const dashboardData = await getMyDashboard();
+    const data: AffiliateDashboardData = dashboardData ?? {
+      totalCases: 0,
+      approvedCases: 0,
+      totalCommission: 0,
+      totalCommissionCount: 0,
+      pendingCommission: 0,
+      pendingCommissionCount: 0,
+    };
+    return <AffiliateDashboard data={data} />;
   }
 
   const [statsResult, quotesResult] = await Promise.all([

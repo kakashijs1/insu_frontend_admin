@@ -2,7 +2,7 @@ import { WithPrisma } from "@/db";
 import { toResult } from "lyney";
 import { extractUserIdFromHeaders } from "@/utils/extract-token";
 import { TERMINAL_STATUSES, ALLOWED_TRANSITIONS } from "@/types/quote";
-import type { QuoteStatus } from "@/types/quote";
+import type { QuoteStatus, PaymentMethod } from "@/types/quote";
 
 const QUOTE_STATUSES: readonly string[] = [
   "PENDING",
@@ -24,6 +24,7 @@ interface ListQuotesParams {
     limit?: string;
     status?: string;
     referralCode?: string;
+    installment?: string;
   };
   set: { status?: number | string };
 }
@@ -75,6 +76,7 @@ const QUOTE_SELECT = {
   phone: true,
   referralCode: true,
   status: true,
+  installmentPlan: true,
   insuranceCompany: true,
   premiumAmount: true,
   purchaseDate: true,
@@ -119,12 +121,21 @@ export const listQuotes = async ({
   const limit = Math.min(100, Math.max(1, parseInt(query.limit || "20", 10)));
   const skip = (page - 1) * limit;
 
-  const where: Record<string, string> = {};
+  const where: {
+    status?: QuoteStatus;
+    referralCode?: string | { not: null };
+    installmentPlan?: null | { not: null };
+  } = {};
   if (query.status) {
-    where.status = query.status;
+    where.status = query.status as QuoteStatus;
   }
   if (query.referralCode) {
     where.referralCode = query.referralCode;
+  }
+  if (query.installment === "true") {
+    where.installmentPlan = { not: null };
+  } else if (query.installment === "false") {
+    where.installmentPlan = null;
   }
 
   const [dataResult, countResult] = await Promise.all([
@@ -176,6 +187,8 @@ export const getQuoteById = async ({
     return { success: false, message: "Unauthorized" };
   }
 
+  await checkOverdueInstallments(prisma, params.id);
+
   const result = await toResult(
     prisma.quoteRequest.findUnique({
       where: { id: params.id },
@@ -191,6 +204,24 @@ export const getQuoteById = async ({
             fileSize: true,
             createdAt: true,
           },
+        },
+        installments: {
+          select: {
+            id: true,
+            installmentNumber: true,
+            amountDue: true,
+            amountPaid: true,
+            dueDate: true,
+            paidAt: true,
+            paymentEvidence: true,
+            status: true,
+            recordedBy: {
+              select: { id: true, username: true },
+            },
+            createdAt: true,
+            updatedAt: true,
+          },
+          orderBy: { installmentNumber: "asc" },
         },
       },
     }),
@@ -249,7 +280,17 @@ export const reviewQuote = async ({
     };
   }
 
-  const updateData: Record<string, string | number | Date | null> = {
+  const updateData: {
+    reviewedById: string;
+    reviewedAt: Date;
+    insuranceCompany?: string;
+    premiumAmount?: number;
+    purchaseDate?: Date;
+    expiryDate?: Date;
+    paymentMethod?: PaymentMethod;
+    paymentEvidence?: string;
+    policyDocumentUrl?: string;
+  } = {
     reviewedById: userId,
     reviewedAt: new Date(),
   };
@@ -263,7 +304,7 @@ export const reviewQuote = async ({
   if (body.expiryDate !== undefined)
     updateData.expiryDate = new Date(body.expiryDate);
   if (body.paymentMethod !== undefined)
-    updateData.paymentMethod = body.paymentMethod;
+    updateData.paymentMethod = body.paymentMethod as PaymentMethod;
   if (body.paymentEvidence !== undefined)
     updateData.paymentEvidence = body.paymentEvidence;
   if (body.policyDocumentUrl !== undefined)
@@ -304,10 +345,11 @@ export const updateQuoteStatus = async ({
       where: { id: params.id },
       select: {
         status: true,
+        insuranceCompany: true,
+        premiumAmount: true,
         paymentEvidence: true,
         policyDocumentUrl: true,
         referralCode: true,
-        premiumAmount: true,
       },
     }),
   );
@@ -333,10 +375,23 @@ export const updateQuoteStatus = async ({
     };
   }
 
+  if (body.status === "QUOTED") {
+    const missing: string[] = [];
+    if (!existing.data.insuranceCompany) missing.push("บริษัทประกัน");
+    if (!existing.data.premiumAmount) missing.push("ราคาประกัน");
+    if (missing.length > 0) {
+      set.status = 400;
+      return {
+        success: false,
+        message: `ไม่สามารถเสนอราคาได้ กรุณากรอก: ${missing.join(", ")}`,
+      };
+    }
+  }
+
   if (body.status === "APPROVED") {
     const missing: string[] = [];
+    if (!existing.data.policyDocumentUrl) missing.push("เอกสารกรมธรรม์");
     if (!existing.data.paymentEvidence) missing.push("หลักฐานชำระเงิน");
-    if (!existing.data.policyDocumentUrl) missing.push("ลิงก์กรมธรรม์");
     if (missing.length > 0) {
       set.status = 400;
       return {
@@ -361,6 +416,48 @@ export const updateQuoteStatus = async ({
   if (!result.ok) {
     set.status = 500;
     return { success: false, message: "Failed to update status" };
+  }
+
+  const premiumAmount = existing.data.premiumAmount;
+  const quotePaymentEvidence = existing.data.paymentEvidence;
+
+  if (body.status === "APPROVED" && premiumAmount) {
+    const quoteForInstallment = await toResult(
+      prisma.quoteRequest.findUnique({
+        where: { id: params.id },
+        select: { installmentPlan: true },
+      }),
+    );
+
+    if (quoteForInstallment.ok && quoteForInstallment.data?.installmentPlan) {
+      const plan = quoteForInstallment.data.installmentPlan;
+      const perInstallment = Math.floor((premiumAmount / plan) * 100) / 100;
+      const lastInstallment =
+        Math.round((premiumAmount - perInstallment * (plan - 1)) * 100) / 100;
+      const now = new Date();
+
+      await toResult(
+        prisma.installmentPayment.createMany({
+          data: Array.from({ length: plan }, (_, i) => {
+            const dueDate = new Date(now);
+            dueDate.setMonth(dueDate.getMonth() + i);
+            const isFirst = i === 0;
+            const amount = i === plan - 1 ? lastInstallment : perInstallment;
+            return {
+              quoteRequestId: params.id,
+              installmentNumber: i + 1,
+              amountDue: amount,
+              amountPaid: isFirst ? amount : 0,
+              dueDate,
+              paidAt: isFirst ? now : null,
+              paymentEvidence: isFirst ? quotePaymentEvidence : null,
+              status: isFirst ? "PAID" : "PENDING",
+              recordedById: isFirst ? userId : null,
+            };
+          }),
+        }),
+      );
+    }
   }
 
   if (
@@ -399,6 +496,149 @@ export const updateQuoteStatus = async ({
 
   return { success: true, data: result.data };
 };
+
+interface RecordInstallmentParams {
+  params: { id: string; installmentId: string };
+  headers: Record<string, string | undefined>;
+  body: {
+    amountPaid: number;
+    paymentEvidence?: string;
+  };
+  set: { status?: number | string };
+}
+
+export const recordInstallmentPayment = async ({
+  params,
+  headers,
+  body,
+  prisma,
+  set,
+}: RecordInstallmentParams & WithPrisma) => {
+  const auth = await extractUserIdFromHeaders(headers);
+  if (!auth.ok) {
+    set.status = 401;
+    return { success: false, message: "Unauthorized" };
+  }
+
+  const installment = await toResult(
+    prisma.installmentPayment.findUnique({
+      where: { id: params.installmentId },
+      select: {
+        id: true,
+        status: true,
+        quoteRequestId: true,
+      },
+    }),
+  );
+
+  if (!installment.ok || !installment.data) {
+    set.status = 404;
+    return { success: false, message: "ไม่พบข้อมูลงวด" };
+  }
+
+  if (installment.data.quoteRequestId !== params.id) {
+    set.status = 400;
+    return { success: false, message: "ข้อมูลงวดไม่ตรงกับคำขอ" };
+  }
+
+  if (installment.data.status === "PAID") {
+    set.status = 400;
+    return { success: false, message: "งวดนี้ชำระแล้ว" };
+  }
+
+  if (installment.data.status === "CANCELLED") {
+    set.status = 400;
+    return { success: false, message: "งวดนี้ถูกยกเลิกแล้ว" };
+  }
+
+  if (body.amountPaid <= 0) {
+    set.status = 400;
+    return { success: false, message: "จำนวนเงินต้องมากกว่า 0" };
+  }
+
+  const result = await toResult(
+    prisma.installmentPayment.update({
+      where: { id: params.installmentId },
+      data: {
+        amountPaid: body.amountPaid,
+        paymentEvidence: body.paymentEvidence || null,
+        paidAt: new Date(),
+        status: "PAID",
+        recordedById: auth.userId,
+      },
+      select: { id: true, status: true },
+    }),
+  );
+
+  if (!result.ok) {
+    set.status = 500;
+    return { success: false, message: "บันทึกการชำระไม่สำเร็จ" };
+  }
+
+  return { success: true, data: result.data };
+};
+
+async function checkOverdueInstallments(
+  prisma: WithPrisma["prisma"],
+  quoteId: string,
+) {
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const overdueInstallments = await toResult(
+    prisma.installmentPayment.findMany({
+      where: {
+        quoteRequestId: quoteId,
+        status: "PENDING",
+        dueDate: { lt: sevenDaysAgo },
+      },
+      select: { id: true },
+    }),
+  );
+
+  if (!overdueInstallments.ok) {
+    console.error(
+      "[checkOverdue] failed to fetch overdue installments:",
+      overdueInstallments.error,
+    );
+    return;
+  }
+
+  if (overdueInstallments.data.length === 0) {
+    return;
+  }
+
+  const cancelQuoteResult = await toResult(
+    prisma.quoteRequest.update({
+      where: { id: quoteId },
+      data: { status: "CANCELLED" },
+    }),
+  );
+
+  if (!cancelQuoteResult.ok) {
+    console.error(
+      "[checkOverdue] failed to cancel quote:",
+      cancelQuoteResult.error,
+    );
+  }
+
+  const cancelInstallmentsResult = await toResult(
+    prisma.installmentPayment.updateMany({
+      where: {
+        quoteRequestId: quoteId,
+        status: { in: ["PENDING", "OVERDUE"] },
+      },
+      data: { status: "CANCELLED" },
+    }),
+  );
+
+  if (!cancelInstallmentsResult.ok) {
+    console.error(
+      "[checkOverdue] failed to cancel installments:",
+      cancelInstallmentsResult.error,
+    );
+  }
+}
 
 export const getQuoteStats = async ({
   headers,

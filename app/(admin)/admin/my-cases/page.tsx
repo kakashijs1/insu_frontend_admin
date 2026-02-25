@@ -55,16 +55,16 @@ export default async function MyCasesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">เคสของฉัน</h1>
-        <p className="text-slate-500 text-sm">
+        <h1 className="text-2xl font-bold text-text-dark">เคสของฉัน</h1>
+        <p className="text-text-medium text-sm">
           รายการลูกค้าที่ใช้รหัสแนะนำของคุณ ({pagination?.total ?? 0} เคส)
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-border-light shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider font-bold">
+            <thead className="bg-bg-light text-text-medium uppercase text-[10px] tracking-wider font-bold">
               <tr>
                 <th className="px-6 py-4">ลูกค้า</th>
                 <th className="px-6 py-4">รถยนต์</th>
@@ -74,7 +74,7 @@ export default async function MyCasesPage() {
                 <th className="px-6 py-4 text-right">รายละเอียด</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border-light">
               {Array.isArray(cases) && cases.length > 0 ? (
                 cases.map(
                   (c: {
@@ -91,27 +91,27 @@ export default async function MyCasesPage() {
                   }) => {
                     const statusInfo = STATUS_MAP[c.status] ?? {
                       label: c.status,
-                      cls: "bg-slate-100 text-slate-500 border-slate-200",
+                      cls: "bg-bg-light text-text-medium border-border-light",
                     };
                     return (
                       <tr
                         key={c.id}
-                        className="hover:bg-slate-50/50 transition-colors"
+                        className="hover:bg-bg-light/50 transition-colors"
                       >
                         <td className="px-6 py-4">
-                          <p className="font-medium text-slate-800">
+                          <p className="font-medium text-text-dark">
                             {c.firstName} {c.lastName}
                           </p>
                         </td>
-                        <td className="px-6 py-4 text-slate-600">
+                        <td className="px-6 py-4 text-text-medium">
                           <p>
                             {c.brand} {c.model} {c.year}
                           </p>
-                          <p className="text-[10px] text-slate-400">
+                          <p className="text-[10px] text-text-light">
                             ชั้น {c.tier}
                           </p>
                         </td>
-                        <td className="px-6 py-4 text-slate-700 font-medium">
+                        <td className="px-6 py-4 text-text-dark font-medium">
                           {c.premiumAmount
                             ? formatCurrency(c.premiumAmount)
                             : "-"}
@@ -123,13 +123,13 @@ export default async function MyCasesPage() {
                             {statusInfo.label}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-xs text-slate-500">
+                        <td className="px-6 py-4 text-xs text-text-medium">
                           {formatDate(c.createdAt)}
                         </td>
                         <td className="px-6 py-4 text-right">
                           <Link
                             href={`/admin/my-cases/${c.id}`}
-                            className="text-teal-600 font-semibold hover:underline text-xs"
+                            className="text-teal font-semibold hover:underline text-xs"
                           >
                             ดูรายละเอียด
                           </Link>
@@ -143,9 +143,9 @@ export default async function MyCasesPage() {
                   <td colSpan={6} className="px-6 py-16 text-center">
                     <Briefcase
                       size={40}
-                      className="mx-auto text-slate-300 mb-3"
+                      className="mx-auto text-text-light mb-3"
                     />
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-text-medium">
                       ยังไม่มีเคสที่ใช้รหัสแนะนำของคุณ
                     </p>
                   </td>

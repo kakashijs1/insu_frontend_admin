@@ -26,16 +26,21 @@ export const uploadPaymentEvidence = async ({
   const accessToken = typeof rawToken === "string" ? rawToken : null;
   if (!accessToken) {
     set.status = 401;
-    return { success: false, detail: "กรุณาเข้าสู่ระบบ" };
+    return { success: false, message: "กรุณาเข้าสู่ระบบ" };
   }
 
   const verified = await verifyAccessToken(accessToken);
   if (!verified.ok) {
     set.status = 401;
-    return { success: false, detail: "Token ไม่ถูกต้องหรือหมดอายุ" };
+    return { success: false, message: "Token ไม่ถูกต้องหรือหมดอายุ" };
   }
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
   const { file } = body;
+  if (file.size > MAX_FILE_SIZE) {
+    set.status = 400;
+    return { success: false, message: "ไฟล์มีขนาดเกิน 5MB" };
+  }
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const uploadResult = await toResult(
@@ -72,7 +77,7 @@ export const uploadPaymentEvidence = async ({
 
   if (!uploadResult.ok) {
     set.status = 500;
-    return { success: false, detail: "อัพโหลดไฟล์ไม่สำเร็จ" };
+    return { success: false, message: "อัพโหลดไฟล์ไม่สำเร็จ" };
   }
 
   return {

@@ -43,7 +43,7 @@ export default function AffiliateActions({
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 transition"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-secondary transition"
       >
         <CheckCircle size={12} />
         จ่ายค่าคอม
@@ -62,13 +62,13 @@ export default function AffiliateActions({
           setEvidenceUrl(e.target.value);
           setError("");
         }}
-        className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500/20"
+        className="w-full rounded-lg border border-border-light px-3 py-1.5 text-xs text-text-dark placeholder:text-text-light focus:border-teal focus:outline-none focus:ring-1 focus:ring-teal/20"
       />
       <div className="flex gap-1.5">
         <button
           onClick={handlePay}
           disabled={isSubmitting}
-          className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 transition disabled:opacity-50"
+          className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-secondary transition disabled:opacity-50"
         >
           {isSubmitting ? "กำลังบันทึก..." : "ยืนยัน"}
         </button>
@@ -77,7 +77,7 @@ export default function AffiliateActions({
             setIsOpen(false);
             setError("");
           }}
-          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition"
+          className="rounded-lg border border-border-light px-3 py-1.5 text-xs font-semibold text-text-medium hover:bg-bg-light transition"
         >
           ยกเลิก
         </button>

@@ -1,37 +1,17 @@
 import { WithPrisma } from "@/db";
-import { extractUserIdFromHeaders } from "@/utils/extract-token";
+import {
+  requireSuper,
+  requireAdmin,
+  requireAffiliate,
+} from "@/utils/require-auth";
 import { toResult } from "lyney";
 import argon2 from "argon2";
-
-const DEFAULT_PASSWORD = "Aa112233*";
+import { env } from "@/config/env";
 
 interface AuthedHeaders {
   headers: Record<string, string | undefined>;
   set: { status?: number | string };
 }
-
-async function requireSuper(
-  headers: Record<string, string | undefined>,
-  set: { status?: number | string },
-) {
-  const auth = await extractUserIdFromHeaders(headers);
-  if (!auth.ok) {
-    set.status = 401;
-    return {
-      ok: false as const,
-      response: { success: false, message: "Unauthorized" },
-    };
-  }
-  if (auth.role !== "Super") {
-    set.status = 403;
-    return {
-      ok: false as const,
-      response: { success: false, message: "Forbidden: Super role required" },
-    };
-  }
-  return { ok: true as const, userId: auth.userId };
-}
-
 interface CreateAffiliateParams extends AuthedHeaders {
   body: {
     email: string;
@@ -80,7 +60,9 @@ export const createAffiliate = async ({
     return { success: false, message: "รหัสแนะนำนี้มีผู้ใช้แล้ว" };
   }
 
-  const hashResult = await toResult(argon2.hash(DEFAULT_PASSWORD));
+  const hashResult = await toResult(
+    argon2.hash(env.DEFAULT_AFFILIATE_PASSWORD),
+  );
   if (!hashResult.ok) {
     set.status = 500;
     return { success: false, message: "Failed to create affiliate" };
@@ -123,7 +105,7 @@ export const listAffiliates = async ({
 }: AuthedHeaders & {
   query: { page?: string; limit?: string };
 } & WithPrisma) => {
-  const auth = await requireSuper(headers, set);
+  const auth = await requireAdmin(headers, set);
   if (!auth.ok) return auth.response;
 
   const page = Math.max(1, parseInt(query.page || "1", 10));
@@ -169,7 +151,7 @@ export const getAffiliateById = async ({
   prisma,
   set,
 }: AuthedHeaders & { params: { id: string } } & WithPrisma) => {
-  const auth = await requireSuper(headers, set);
+  const auth = await requireAdmin(headers, set);
   if (!auth.ok) return auth.response;
 
   const result = await toResult(
@@ -240,7 +222,7 @@ export const updateAffiliate = async ({
   prisma,
   set,
 }: UpdateAffiliateParams & WithPrisma) => {
-  const auth = await requireSuper(headers, set);
+  const auth = await requireAdmin(headers, set);
   if (!auth.ok) return auth.response;
 
   const existing = await toResult(
@@ -292,7 +274,7 @@ export const resetAffiliatePassword = async ({
   prisma,
   set,
 }: AuthedHeaders & { params: { id: string } } & WithPrisma) => {
-  const auth = await requireSuper(headers, set);
+  const auth = await requireAdmin(headers, set);
   if (!auth.ok) return auth.response;
 
   const existing = await toResult(
@@ -307,7 +289,9 @@ export const resetAffiliatePassword = async ({
     return { success: false, message: "Affiliate not found" };
   }
 
-  const hashResult = await toResult(argon2.hash(DEFAULT_PASSWORD));
+  const hashResult = await toResult(
+    argon2.hash(env.DEFAULT_AFFILIATE_PASSWORD),
+  );
   if (!hashResult.ok) {
     set.status = 500;
     return { success: false, message: "Failed to reset password" };
@@ -331,31 +315,6 @@ export const resetAffiliatePassword = async ({
 
   return { success: true, message: "รีเซ็ตรหัสผ่านสำเร็จ", data: result.data };
 };
-
-async function requireAffiliate(
-  headers: Record<string, string | undefined>,
-  set: { status?: number | string },
-) {
-  const auth = await extractUserIdFromHeaders(headers);
-  if (!auth.ok) {
-    set.status = 401;
-    return {
-      ok: false as const,
-      response: { success: false, message: "Unauthorized" },
-    };
-  }
-  if (auth.role !== "Affiliate") {
-    set.status = 403;
-    return {
-      ok: false as const,
-      response: {
-        success: false,
-        message: "Forbidden: Affiliate role required",
-      },
-    };
-  }
-  return { ok: true as const, userId: auth.userId };
-}
 
 export const getMyCases = async ({
   headers,
@@ -579,21 +538,22 @@ export const getMyCommissions = async ({
     return { success: false, message: "Failed to fetch commissions" };
   }
 
-  const pendingSumResult = await toResult(
-    prisma.affiliateCommission.aggregate({
-      where: { affiliateId: auth.userId, status: "PENDING" },
-      _sum: { commissionAmount: true },
-      _count: true,
-    }),
-  );
-
-  const paidSumResult = await toResult(
-    prisma.affiliateCommission.aggregate({
-      where: { affiliateId: auth.userId, status: "PAID" },
-      _sum: { commissionAmount: true },
-      _count: true,
-    }),
-  );
+  const [pendingSumResult, paidSumResult] = await Promise.all([
+    toResult(
+      prisma.affiliateCommission.aggregate({
+        where: { affiliateId: auth.userId, status: "PENDING" },
+        _sum: { commissionAmount: true },
+        _count: true,
+      }),
+    ),
+    toResult(
+      prisma.affiliateCommission.aggregate({
+        where: { affiliateId: auth.userId, status: "PAID" },
+        _sum: { commissionAmount: true },
+        _count: true,
+      }),
+    ),
+  ]);
 
   return {
     success: true,
@@ -635,7 +595,7 @@ export const payCommission = async ({
   prisma,
   set,
 }: PayCommissionParams & WithPrisma) => {
-  const auth = await requireSuper(headers, set);
+  const auth = await requireAdmin(headers, set);
   if (!auth.ok) return auth.response;
 
   const existing = await toResult(

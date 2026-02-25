@@ -35,6 +35,34 @@
   --color-border-light: #cfd6e0;
   --color-muted: #cbd5e1;
   --color-muted-light: #f8fafc;
+
+  /* Admin Sidebar */
+  --color-sidebar-bg: #ffffff;
+  --color-sidebar-border: #e2e8f0;
+  --color-sidebar-hover: #f8fafc;
+  --color-sidebar-active-bg: #f0fdfa;
+  --color-sidebar-active-text: #0f766e;
+  --color-sidebar-text: #475569;
+  --color-sidebar-text-muted: #94a3b8;
+  --color-sidebar-brand: #0d9488;
+
+  /* Admin Navbar */
+  --color-navbar-text: #64748b;
+  --color-navbar-text-hover: #1e293b;
+  --color-navbar-border: #e2e8f0;
+
+  /* Admin Overlay */
+  --color-overlay: rgba(15, 23, 42, 0.4);
+
+  /* Admin Notification */
+  --color-notif-bg: #fffbeb;
+  --color-notif-text: #b45309;
+  --color-notif-border: #fde68a;
+  --color-notif-dot: #fbbf24;
+  --color-notif-icon: #d97706;
+
+  /* Status */
+  --color-status-online: #059669;
 }
 
 .primary-btn {
