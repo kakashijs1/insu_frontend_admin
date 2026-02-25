@@ -9,6 +9,22 @@ export type QuoteStatus =
 
 export type PaymentMethod = "MOBILE_BANKING" | "QR_PROMPTPAY";
 
+export type InstallmentStatus = "PENDING" | "OVERDUE" | "PAID" | "CANCELLED";
+
+export interface InstallmentPaymentItem {
+  id: string;
+  installmentNumber: number;
+  amountDue: number;
+  amountPaid: number;
+  dueDate: string | Date;
+  paidAt: string | Date | null;
+  paymentEvidence: string | null;
+  status: InstallmentStatus;
+  recordedBy: { id: string; username: string } | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
 export interface QuoteCustomer {
   id: string;
   name: string;
@@ -46,6 +62,7 @@ export interface QuoteListItem {
   phone: string;
   referralCode: string | null;
   status: QuoteStatus;
+  installmentPlan: number | null;
   insuranceCompany: string | null;
   premiumAmount: number | null;
   purchaseDate: string | Date | null;
@@ -63,6 +80,7 @@ export interface QuoteListItem {
 
 export interface QuoteDetail extends Omit<QuoteListItem, "documents"> {
   documents: QuoteDocumentDetail[];
+  installments: InstallmentPaymentItem[];
 }
 
 export interface QuotePagination {

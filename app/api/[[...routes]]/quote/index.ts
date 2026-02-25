@@ -7,6 +7,7 @@ import {
   reviewQuote,
   updateQuoteStatus,
   getQuoteStats,
+  recordInstallmentPayment,
 } from "./handlers";
 
 const quoteRoutes = new Elysia()
@@ -32,6 +33,12 @@ const quoteRoutes = new Elysia()
     ({ params, headers, body, prisma, set }) =>
       updateQuoteStatus({ params, headers, body, prisma, set }),
     { body: "quote.status" },
+  )
+  .put(
+    "/quote/:id/installment/:installmentId/pay",
+    ({ params, headers, body, prisma, set }) =>
+      recordInstallmentPayment({ params, headers, body, prisma, set }),
+    { body: "installment.pay" },
   );
 
 export default quoteRoutes;

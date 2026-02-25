@@ -45,14 +45,14 @@ export default function ChangePasswordForm() {
   if (success) {
     return (
       <div className="max-w-md">
-        <div className="bg-white rounded-2xl border border-emerald-200 p-8 shadow-sm text-center">
-          <div className="mx-auto w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
-            <Lock size={20} className="text-emerald-600" />
+        <div className="bg-white rounded-2xl border border-success/20 p-8 shadow-sm text-center">
+          <div className="mx-auto w-12 h-12 rounded-full bg-success-light flex items-center justify-center mb-4">
+            <Lock size={20} className="text-success" />
           </div>
-          <h2 className="text-lg font-bold text-slate-900 mb-2">
+          <h2 className="text-lg font-bold text-text-dark mb-2">
             เปลี่ยนรหัสผ่านสำเร็จ
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-text-medium">
             รหัสผ่านของคุณถูกเปลี่ยนเรียบร้อยแล้ว
           </p>
         </div>
@@ -62,7 +62,7 @@ export default function ChangePasswordForm() {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-md">
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+      <div className="bg-white rounded-2xl border border-border-light p-6 shadow-sm space-y-5">
         {error && (
           <div className="rounded-xl border border-danger/20 bg-danger-light px-4 py-3 text-sm text-danger">
             {error}
@@ -70,13 +70,13 @@ export default function ChangePasswordForm() {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">
+          <label className="block text-sm font-medium text-text-dark mb-1.5">
             รหัสผ่านปัจจุบัน
           </label>
           <div className="relative">
             <Lock
               size={16}
-              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-light"
             />
             <input
               type={showCurrent ? "text" : "password"}
@@ -87,12 +87,12 @@ export default function ChangePasswordForm() {
               }}
               required
               placeholder="รหัสผ่านปัจจุบัน"
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              className="w-full rounded-xl border border-border-light bg-white py-2.5 pl-10 pr-10 text-sm text-text-dark placeholder:text-text-light transition focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/20"
             />
             <button
               type="button"
               onClick={() => setShowCurrent(!showCurrent)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light hover:text-text-medium"
             >
               {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -100,13 +100,13 @@ export default function ChangePasswordForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">
+          <label className="block text-sm font-medium text-text-dark mb-1.5">
             รหัสผ่านใหม่
           </label>
           <div className="relative">
             <Lock
               size={16}
-              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-light"
             />
             <input
               type={showNew ? "text" : "password"}
@@ -118,12 +118,12 @@ export default function ChangePasswordForm() {
               required
               minLength={8}
               placeholder="รหัสผ่านใหม่ (อย่างน้อย 8 ตัว)"
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              className="w-full rounded-xl border border-border-light bg-white py-2.5 pl-10 pr-10 text-sm text-text-dark placeholder:text-text-light transition focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/20"
             />
             <button
               type="button"
               onClick={() => setShowNew(!showNew)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light hover:text-text-medium"
             >
               {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -131,13 +131,13 @@ export default function ChangePasswordForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">
+          <label className="block text-sm font-medium text-text-dark mb-1.5">
             ยืนยันรหัสผ่านใหม่
           </label>
           <div className="relative">
             <Lock
               size={16}
-              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-light"
             />
             <input
               type="password"
@@ -149,7 +149,7 @@ export default function ChangePasswordForm() {
               required
               minLength={8}
               placeholder="ยืนยันรหัสผ่านใหม่"
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              className="w-full rounded-xl border border-border-light bg-white py-2.5 pl-10 pr-4 text-sm text-text-dark placeholder:text-text-light transition focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/20"
             />
           </div>
         </div>
@@ -157,7 +157,7 @@ export default function ChangePasswordForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-xl bg-teal-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? "กำลังเปลี่ยน..." : "เปลี่ยนรหัสผ่าน"}
         </button>

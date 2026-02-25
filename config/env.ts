@@ -7,12 +7,15 @@ const EnvSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
+  BASE_URL: z.url(),
+  ORIGINS: z.string().min(1),
 
   DATABASE_URL: z.url(),
 
   JWT_ACCESS_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),
   CLOUDINARY_URL: z.string().startsWith("cloudinary://"),
+  DEFAULT_AFFILIATE_PASSWORD: z.string().min(8),
 });
 
 /**
@@ -31,6 +34,8 @@ if (!parsed.success) {
  */
 export const env = Object.freeze({
   NODE_ENV: parsed.data.NODE_ENV,
+  BASE_URL: parsed.data.BASE_URL,
+  ORIGINS: parsed.data.ORIGINS.split(",").map((s) => s.trim()),
 
   DATABASE_URL: parsed.data.DATABASE_URL,
 
@@ -39,4 +44,5 @@ export const env = Object.freeze({
     REFRESH_SECRET: parsed.data.JWT_REFRESH_SECRET,
   },
   CLOUDINARY_URL: parsed.data.CLOUDINARY_URL,
+  DEFAULT_AFFILIATE_PASSWORD: parsed.data.DEFAULT_AFFILIATE_PASSWORD,
 });

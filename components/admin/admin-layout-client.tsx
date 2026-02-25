@@ -57,6 +57,7 @@ export default function AdminLayoutClient({
   };
 
   const isAffiliate = user?.role === "Affiliate";
+  const isSuper = user?.role === "Super";
 
   const adminNavigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -86,21 +87,25 @@ export default function AdminLayoutClient({
         },
       ],
     },
-    {
-      title: "ตั้งค่าระบบ",
-      items: [
-        {
-          name: "สร้าง User ใหม่",
-          href: "/admin/users/create",
-          icon: UserPlus,
-        },
-        {
-          name: "แก้ไข User / สิทธิ์",
-          href: "/admin/users/manage",
-          icon: UserCog,
-        },
-      ],
-    },
+    ...(isSuper
+      ? [
+          {
+            title: "ตั้งค่าระบบ",
+            items: [
+              {
+                name: "สร้าง User ใหม่",
+                href: "/admin/users/create",
+                icon: UserPlus,
+              },
+              {
+                name: "แก้ไข User / สิทธิ์",
+                href: "/admin/users/manage",
+                icon: UserCog,
+              },
+            ],
+          },
+        ]
+      : []),
   ];
 
   const affiliateNavigation = [
@@ -122,41 +127,41 @@ export default function AdminLayoutClient({
   const navigation = isAffiliate ? affiliateNavigation : adminNavigation;
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
-      {/* 1. Mobile Overlay: แก้ z-index เป็น 50 */}
+    <div className="min-h-screen bg-muted-light">
+      {/* 1. Mobile Overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 z-[50] bg-slate-900/40 backdrop-blur-sm lg:hidden transition-opacity"
+          className="fixed inset-0 z-[50] bg-overlay backdrop-blur-sm lg:hidden transition-opacity"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* 2. Sidebar: ปรับ z-index เป็น 60 (สูงที่สุด) และใช้ transition-all */}
+      {/* 2. Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-[60] w-72 bg-white border-r border-slate-200 transition-all duration-300 ease-in-out
+        className={`fixed inset-y-0 left-0 z-[60] w-72 bg-sidebar-bg border-r border-sidebar-border transition-all duration-300 ease-in-out
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
           lg:translate-x-0 ${!isSidebarOpen ? "lg:w-0 lg:invisible" : "lg:w-72"}
         `}
       >
         <div className="flex flex-col h-full overflow-hidden">
           {/* Logo Section */}
-          <div className="p-6 border-b border-slate-50 shrink-0">
+          <div className="p-6 border-b border-bg-light shrink-0">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 text-teal-600 font-bold text-xl">
-                <div className="bg-teal-600 p-1.5 rounded-lg text-white">
+              <div className="flex items-center gap-3 text-sidebar-brand font-bold text-xl">
+                <div className="bg-sidebar-brand p-1.5 rounded-lg text-white">
                   <ShieldCheck size={20} />
                 </div>
-                <span className="tracking-tight text-slate-800">
+                <span className="tracking-tight text-text-dark">
                   SABUYJAI{" "}
-                  <span className="text-teal-600 uppercase">
+                  <span className="text-sidebar-brand uppercase">
                     {isAffiliate ? "Partner" : "Admin"}
                   </span>
                 </span>
               </div>
-              {/* ปุ่มปิดสำหรับ Mobile */}
+              {/* Mobile close button */}
               <button
                 onClick={() => setSidebarOpen(false)}
-                className="lg:hidden p-1 text-slate-400"
+                className="lg:hidden p-1 text-sidebar-text-muted"
               >
                 <X size={20} />
               </button>
@@ -168,7 +173,7 @@ export default function AdminLayoutClient({
             {navigation.map((group, idx) => (
               <div key={idx}>
                 {group.title && (
-                  <p className="px-4 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                  <p className="px-4 mb-2 text-[10px] font-bold text-sidebar-text-muted uppercase tracking-[0.2em]">
                     {group.title}
                   </p>
                 )}
@@ -184,16 +189,16 @@ export default function AdminLayoutClient({
                         href={item.href}
                         className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                           pathname === item.href
-                            ? "bg-teal-50 text-teal-700 shadow-sm"
-                            : "text-slate-600 hover:bg-slate-50 hover:text-teal-600"
+                            ? "bg-sidebar-active-bg text-sidebar-active-text shadow-sm"
+                            : "text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-brand"
                         }`}
                       >
                         <item.icon
                           size={18}
                           className={
                             pathname === item.href
-                              ? "text-teal-600"
-                              : "text-slate-400"
+                              ? "text-sidebar-brand"
+                              : "text-sidebar-text-muted"
                           }
                         />
                         <span className="truncate">{item.name}</span>
@@ -206,27 +211,27 @@ export default function AdminLayoutClient({
           </nav>
 
           {/* User Profile Section */}
-          <div className="p-4 border-t border-slate-100 bg-slate-50/50 shrink-0">
+          <div className="p-4 border-t border-border-light bg-muted-light shrink-0">
             <div className="flex items-center gap-3 p-2">
-              <div className="w-9 h-9 rounded-full bg-teal-600 flex items-center justify-center text-white font-medium shrink-0">
+              <div className="w-9 h-9 rounded-full bg-sidebar-brand flex items-center justify-center text-white font-medium shrink-0">
                 {getUserInitials()}
               </div>
               <div className="flex-1 min-w-0 leading-tight">
-                <p className="text-sm font-semibold text-slate-800 truncate">
+                <p className="text-sm font-semibold text-text-dark truncate">
                   {user?.username || "Administrator"}
                 </p>
-                <p className="text-[11px] text-slate-500 truncate">
+                <p className="text-[11px] text-text-medium truncate">
                   {user?.email || "admin@sabuyjai.com"}
                 </p>
               </div>
               <button
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="text-slate-400 hover:text-danger transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="text-sidebar-text-muted hover:text-danger transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="ออกจากระบบ"
               >
                 {isLoggingOut ? (
-                  <div className="h-[18px] w-[18px] animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
+                  <div className="h-[18px] w-[18px] animate-spin rounded-full border-2 border-sidebar-text-muted border-t-transparent" />
                 ) : (
                   <LogOut size={18} />
                 )}
@@ -236,15 +241,15 @@ export default function AdminLayoutClient({
         </div>
       </aside>
 
-      {/* 3. Main Content: ใช้ padding-left แบบ Dynamic ขยับตาม Sidebar */}
+      {/* 3. Main Content */}
       <div
         className={`transition-all duration-300 min-h-screen flex flex-col ${isSidebarOpen ? "lg:pl-72" : "lg:pl-0"}`}
       >
-        {/* Top Navbar: ปรับ z-index เป็น 40 */}
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-4 backdrop-blur-md sm:px-6">
+        {/* Top Navbar */}
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-navbar-border bg-white/80 px-4 backdrop-blur-md sm:px-6">
           <button
             onClick={() => setSidebarOpen(!isSidebarOpen)}
-            className="p-2 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all active:scale-95"
+            className="p-2 rounded-lg text-navbar-text hover:bg-sidebar-hover hover:text-navbar-text-hover transition-all active:scale-95"
           >
             <Menu size={24} />
           </button>
@@ -254,12 +259,12 @@ export default function AdminLayoutClient({
               pendingCount={pendingCount}
               pendingQuotes={pendingQuotes}
             />
-            <div className="h-6 w-px bg-slate-200" />
+            <div className="h-6 w-px bg-navbar-border" />
             <div className="flex flex-col items-end hidden sm:flex">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+              <span className="text-[10px] font-bold text-sidebar-text-muted uppercase tracking-tight">
                 System Status
               </span>
-              <span className="text-xs font-medium text-emerald-600">
+              <span className="text-xs font-medium text-status-online">
                 Online
               </span>
             </div>

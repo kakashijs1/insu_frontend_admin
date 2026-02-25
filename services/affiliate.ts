@@ -5,6 +5,7 @@ import { toResult } from "lyney";
 import { parseApiError } from "@/utils/error";
 import type {
   AffiliateDetail,
+  AffiliateCaseDetail,
   CreateAffiliateData,
   UpdateAffiliateData,
 } from "@/types/affiliate";
@@ -163,7 +164,9 @@ export async function getMyCases(page = 1, status?: string) {
   };
 }
 
-export async function getMyCaseById(id: string) {
+export async function getMyCaseById(
+  id: string,
+): Promise<AffiliateCaseDetail | null> {
   const headers = await getAuthHeaders();
   const result = await toResult(
     api.affiliate["my-cases"]({ id }).get({ headers }),
@@ -174,7 +177,7 @@ export async function getMyCaseById(id: string) {
   const { data, error } = result.data;
   if (error || !data || !("data" in data)) return null;
 
-  return data.data;
+  return data.data ?? null;
 }
 
 export async function getMyCommissions(page = 1, status?: string) {

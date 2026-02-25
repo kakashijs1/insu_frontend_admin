@@ -9,17 +9,17 @@ export default function GlobalError({
 }) {
   return (
     <html lang="th">
-      <body className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
+      <body className="flex min-h-screen items-center justify-center bg-bg-light p-6">
         <div className="max-w-md text-center">
-          <h2 className="text-lg font-bold text-gray-900 mb-2">
+          <h2 className="text-lg font-bold text-text-dark mb-2">
             เกิดข้อผิดพลาดร้ายแรง
           </h2>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-text-medium mb-6">
             {error.message || "ระบบขัดข้อง กรุณาลองใหม่อีกครั้ง"}
           </p>
           <button
             onClick={reset}
-            className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+            className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-secondary"
           >
             ลองใหม่
           </button>

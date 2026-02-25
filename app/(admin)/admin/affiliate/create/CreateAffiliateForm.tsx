@@ -80,7 +80,19 @@ export default function CreateAffiliateForm() {
     router.refresh();
   };
 
-  const fields = [
+  type FormKey = keyof typeof form;
+
+  const fields: {
+    name: FormKey;
+    label: string;
+    type: string;
+    placeholder: string;
+    icon: React.ComponentType<{ size?: number; className?: string }>;
+    required: boolean;
+    maxLength?: number;
+    min?: number;
+    max?: number;
+  }[] = [
     {
       name: "fullName",
       label: "ชื่อ-นามสกุล",
@@ -152,7 +164,7 @@ export default function CreateAffiliateForm() {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl">
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+      <div className="bg-white rounded-2xl border border-border-light p-6 shadow-sm space-y-5">
         {error && (
           <div className="rounded-xl border border-danger/20 bg-danger-light px-4 py-3 text-sm text-danger">
             {error}
@@ -165,13 +177,13 @@ export default function CreateAffiliateForm() {
               key={f.name}
               className={f.name === "email" ? "sm:col-span-2" : ""}
             >
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-sm font-medium text-text-dark mb-1.5">
                 {f.label}
               </label>
               <div className="relative">
                 <f.icon
                   size={16}
-                  className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                  className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-light"
                 />
                 <input
                   name={f.name}
@@ -181,17 +193,17 @@ export default function CreateAffiliateForm() {
                   maxLength={f.maxLength}
                   min={f.min}
                   max={f.max}
-                  value={form[f.name as keyof typeof form]}
+                  value={form[f.name]}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                  className="w-full rounded-xl border border-border-light bg-white py-2.5 pl-10 pr-4 text-sm text-text-dark placeholder:text-text-light transition focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/20"
                 />
               </div>
             </div>
           ))}
         </div>
 
-        <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
-          <p className="text-xs text-amber-800">
+        <div className="rounded-xl bg-warning-light border border-warning/20 px-4 py-3">
+          <p className="text-xs text-warning">
             <span className="font-semibold">รหัสผ่านเริ่มต้น:</span> Aa112233* —
             Affiliate จะต้องเปลี่ยนรหัสผ่านหลังเข้าสู่ระบบครั้งแรก
           </p>
@@ -201,14 +213,14 @@ export default function CreateAffiliateForm() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="rounded-xl bg-teal-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "กำลังสร้าง..." : "สร้าง Affiliate"}
           </button>
           <button
             type="button"
             onClick={() => router.back()}
-            className="rounded-xl border border-slate-200 px-6 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+            className="rounded-xl border border-border-light px-6 py-2.5 text-sm font-semibold text-text-medium transition hover:bg-bg-light"
           >
             ยกเลิก
           </button>

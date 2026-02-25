@@ -189,18 +189,6 @@ export const refreshTokens = async ({
     return { success: false, message: "Refresh token is invalid or revoked" };
   }
 
-  const revokeResult = await toResult(
-    prisma.adminRefreshToken.update({
-      where: { jti },
-      data: { revoked: true },
-    }),
-  );
-
-  if (!revokeResult.ok) {
-    set.status = 500;
-    return { success: false, message: "Internal server error" };
-  }
-
   const userResult = await toResult(
     prisma.user.findUnique({ where: { id: sub } }),
   );
@@ -231,17 +219,23 @@ export const refreshTokens = async ({
     return { success: false, message: "Failed to refresh session" };
   }
 
-  const dbCreateResult = await toResult(
-    prisma.adminRefreshToken.create({
-      data: {
-        jti: newJti,
-        userId: user.id,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      },
-    }),
+  const txResult = await toResult(
+    prisma.$transaction([
+      prisma.adminRefreshToken.update({
+        where: { jti },
+        data: { revoked: true },
+      }),
+      prisma.adminRefreshToken.create({
+        data: {
+          jti: newJti,
+          userId: user.id,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        },
+      }),
+    ]),
   );
 
-  if (!dbCreateResult.ok) {
+  if (!txResult.ok) {
     set.status = 500;
     return { success: false, message: "Failed to refresh session" };
   }

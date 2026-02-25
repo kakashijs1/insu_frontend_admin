@@ -54,7 +54,7 @@ export default function NotificationDropdown({
     <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 text-slate-400 hover:text-teal-600 relative transition-colors"
+        className="p-2 text-sidebar-text-muted hover:text-sidebar-brand relative transition-colors"
       >
         <Bell size={20} />
         {pendingCount > 0 && (
@@ -65,12 +65,12 @@ export default function NotificationDropdown({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl border border-slate-200 shadow-xl z-[100] overflow-hidden">
-          <div className="p-4 border-b border-slate-100">
+        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl border border-sidebar-border shadow-xl z-[100] overflow-hidden">
+          <div className="p-4 border-b border-border-light">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-800 text-sm">แจ้งเตือน</h3>
+              <h3 className="font-bold text-text-dark text-sm">แจ้งเตือน</h3>
               {pendingCount > 0 && (
-                <span className="bg-amber-50 text-amber-700 text-xs font-semibold px-2 py-0.5 rounded-full border border-amber-200">
+                <span className="bg-notif-bg text-notif-text text-xs font-semibold px-2 py-0.5 rounded-full border border-notif-border">
                   {pendingCount} รายการใหม่
                 </span>
               )}
@@ -79,7 +79,7 @@ export default function NotificationDropdown({
 
           <div className="max-h-80 overflow-y-auto">
             {pendingQuotes.length === 0 ? (
-              <div className="p-6 text-center text-slate-400 text-sm">
+              <div className="p-6 text-center text-sidebar-text-muted text-sm">
                 ไม่มีคำขอใหม่
               </div>
             ) : (
@@ -88,34 +88,34 @@ export default function NotificationDropdown({
                   key={q.id}
                   href={`/admin/quote/${q.id}`}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-start gap-3 p-4 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"
+                  className="flex items-start gap-3 p-4 hover:bg-sidebar-hover transition-colors border-b border-bg-light last:border-0"
                 >
-                  <div className="shrink-0 mt-0.5 w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-                    <FileText size={16} className="text-amber-600" />
+                  <div className="shrink-0 mt-0.5 w-8 h-8 rounded-lg bg-notif-bg flex items-center justify-center">
+                    <FileText size={16} className="text-notif-icon" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-800 truncate">
+                    <p className="text-sm font-medium text-text-dark truncate">
                       {q.firstName} {q.lastName}
                     </p>
-                    <p className="text-xs text-slate-500 truncate">
+                    <p className="text-xs text-text-medium truncate">
                       {q.tier} — {q.brand} {q.model}
                     </p>
-                    <p className="text-[11px] text-slate-400 mt-1">
+                    <p className="text-[11px] text-sidebar-text-muted mt-1">
                       {timeAgo(q.createdAt)}
                     </p>
                   </div>
-                  <span className="shrink-0 mt-1 w-2 h-2 rounded-full bg-amber-400" />
+                  <span className="shrink-0 mt-1 w-2 h-2 rounded-full bg-notif-dot" />
                 </Link>
               ))
             )}
           </div>
 
           {pendingCount > 0 && (
-            <div className="p-3 border-t border-slate-100 bg-slate-50/50">
+            <div className="p-3 border-t border-border-light bg-muted-light">
               <Link
                 href="/admin"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center justify-center gap-1.5 text-xs font-semibold text-teal-600 hover:text-teal-700 transition-colors"
+                className="flex items-center justify-center gap-1.5 text-xs font-semibold text-sidebar-brand hover:text-sidebar-active-text transition-colors"
               >
                 ดูทั้งหมด
                 <ArrowRight size={14} />
