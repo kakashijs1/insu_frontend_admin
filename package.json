@@ -9,6 +9,7 @@
     "lint": "eslint",
     "sync:schema": "bun scripts/sync-customer-schema.ts",
     "generate": "bun run sync:schema && prisma generate && bun scripts/fix-prismabox-imports.ts",
+    "generate:build" : "prisma generate && bun scripts/fix-prismabox-imports.ts && next build",
     "fix:prismabox": "bun scripts/fix-prismabox-imports.ts",
     "db:push": "bun run sync:schema && bunx prisma db push"
   },
