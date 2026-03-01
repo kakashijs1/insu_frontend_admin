@@ -56,6 +56,7 @@ export interface AffiliateCaseListItem {
   status: string;
   insuranceCompany: string | null;
   premiumAmount: number | null;
+  netPremiumAmount: number | null;
   createdAt: string | Date;
   updatedAt: string | Date;
 }
@@ -74,6 +75,7 @@ export interface AffiliateCaseDetail {
   status: string;
   insuranceCompany: string | null;
   premiumAmount: number | null;
+  netPremiumAmount: number | null;
   purchaseDate: string | Date | null;
   expiryDate: string | Date | null;
   paymentMethod: string | null;

@@ -65,6 +65,7 @@ export interface QuoteListItem {
   installmentPlan: number | null;
   insuranceCompany: string | null;
   premiumAmount: number | null;
+  netPremiumAmount: number | null;
   purchaseDate: string | Date | null;
   expiryDate: string | Date | null;
   paymentMethod: PaymentMethod | null;

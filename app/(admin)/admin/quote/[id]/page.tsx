@@ -178,20 +178,31 @@ export default async function QuoteDetailPage({ params }: PageProps) {
         </div>
         <div className="bg-white rounded-xl border border-border-light p-3">
           <p className="text-[10px] font-medium text-text-light uppercase tracking-wider">
-            เบี้ยประกัน
+            เบี้ยรวม
           </p>
           <p className="text-lg font-bold text-teal mt-0.5">
             {quote.premiumAmount ? formatTHB(quote.premiumAmount) : "-"}
           </p>
         </div>
-        <div className="bg-white rounded-xl border border-border-light p-3">
-          <p className="text-[10px] font-medium text-text-light uppercase tracking-wider">
-            บริษัทประกัน
-          </p>
-          <p className="text-sm font-bold text-text-dark mt-0.5 truncate">
-            {quote.insuranceCompany || "-"}
-          </p>
-        </div>
+        {quote.referralCode && quote.netPremiumAmount ? (
+          <div className="bg-white rounded-xl border border-border-light p-3">
+            <p className="text-[10px] font-medium text-text-light uppercase tracking-wider">
+              เบี้ยสุทธิ
+            </p>
+            <p className="text-lg font-bold text-info mt-0.5">
+              {formatTHB(quote.netPremiumAmount)}
+            </p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-border-light p-3">
+            <p className="text-[10px] font-medium text-text-light uppercase tracking-wider">
+              บริษัทประกัน
+            </p>
+            <p className="text-sm font-bold text-text-dark mt-0.5 truncate">
+              {quote.insuranceCompany || "-"}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -293,9 +304,16 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                 <InfoItem icon={Building2} label="บริษัทประกัน">
                   {quote.insuranceCompany || "-"}
                 </InfoItem>
-                <InfoItem icon={CreditCard} label="ราคาประกัน">
+                <InfoItem icon={CreditCard} label="เบี้ยรวม">
                   {quote.premiumAmount ? formatTHB(quote.premiumAmount) : "-"}
                 </InfoItem>
+                {quote.referralCode && (
+                  <InfoItem icon={CreditCard} label="เบี้ยสุทธิ">
+                    {quote.netPremiumAmount
+                      ? formatTHB(quote.netPremiumAmount)
+                      : "-"}
+                  </InfoItem>
+                )}
                 <InfoItem icon={Calendar} label="วันที่ซื้อ">
                   {quote.purchaseDate
                     ? formatThaiDateLong(quote.purchaseDate)
@@ -351,9 +369,11 @@ export default async function QuoteDetailPage({ params }: PageProps) {
             <QuoteReviewForm
               quoteId={quote.id}
               currentStatus={quote.status}
+              referralCode={quote.referralCode ?? null}
               initialData={{
                 insuranceCompany: quote.insuranceCompany ?? "",
                 premiumAmount: quote.premiumAmount ?? 0,
+                netPremiumAmount: quote.netPremiumAmount ?? 0,
                 purchaseDate: quote.purchaseDate
                   ? String(quote.purchaseDate)
                   : "",

@@ -9,6 +9,7 @@ import {
 } from "@/utils/auth";
 import { redirect } from "next/navigation";
 import { parseApiError } from "@/utils/error";
+import { toResult } from "lyney";
 
 interface SignInState {
   success: boolean;
@@ -26,10 +27,13 @@ async function signIn(
     return { success: false, message: "Please fill in all fields" };
   }
 
-  const { data, error } = await api.login.post({
-    email,
-    password,
-  });
+  const result = await toResult(api.login.post({ email, password }));
+
+  if (!result.ok) {
+    return { success: false, message: "Internal Server Error" };
+  }
+
+  const { data, error } = result.data;
 
   if (error) {
     return {
@@ -52,7 +56,7 @@ async function signOut(): Promise<void> {
   const refreshToken = await getRefreshTokenFromCookies();
 
   if (refreshToken) {
-    await api["sign-out"].post({ refreshToken });
+    await toResult(api["sign-out"].post({ refreshToken }));
   }
 
   await clearAuthCookies();
@@ -62,13 +66,12 @@ async function signOut(): Promise<void> {
 
 async function getCurrentUser() {
   const headers = await getAuthHeaders();
-  const { data, error } = await api.auth.me.get({
-    headers,
-  });
+  const result = await toResult(api.auth.me.get({ headers }));
 
-  if (error || !data?.success) {
-    return null;
-  }
+  if (!result.ok) return null;
+
+  const { data, error } = result.data;
+  if (error || !data?.success) return null;
 
   return data.data?.user ?? null;
 }

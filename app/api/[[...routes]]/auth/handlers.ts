@@ -232,6 +232,11 @@ export const refreshTokens = async ({
           expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         },
       }),
+      prisma.adminRefreshToken.deleteMany({
+        where: {
+          OR: [{ revoked: true }, { expiresAt: { lt: new Date() } }],
+        },
+      }),
     ]),
   );
 

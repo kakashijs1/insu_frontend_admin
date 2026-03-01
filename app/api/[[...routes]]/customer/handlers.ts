@@ -1,7 +1,9 @@
 import { WithPrisma } from "@/db";
 import { toResult } from "lyney";
+import { requireAdmin } from "@/utils/require-auth";
 
 interface ListCustomersParams {
+  headers: Record<string, string | undefined>;
   query: {
     page?: string;
     limit?: string;
@@ -11,26 +13,33 @@ interface ListCustomersParams {
 }
 
 interface CustomerByIdParams {
+  headers: Record<string, string | undefined>;
   params: { id: string };
   set: { status?: number | string };
 }
 
 interface UpdateCustomerParams {
+  headers: Record<string, string | undefined>;
   params: { id: string };
   body: { name?: string; phone?: string };
   set: { status?: number | string };
 }
 
 interface DeleteCustomerParams {
+  headers: Record<string, string | undefined>;
   params: { id: string };
   set: { status?: number | string };
 }
 
 export const listCustomers = async ({
+  headers,
   query,
   prisma,
   set,
 }: ListCustomersParams & WithPrisma) => {
+  const auth = await requireAdmin(headers, set);
+  if (!auth.ok) return auth.response;
+
   const page = Math.max(1, parseInt(query.page || "1", 10));
   const limit = Math.min(100, Math.max(1, parseInt(query.limit || "20", 10)));
   const skip = (page - 1) * limit;
@@ -84,10 +93,14 @@ export const listCustomers = async ({
 };
 
 export const getCustomerById = async ({
+  headers,
   params,
   prisma,
   set,
 }: CustomerByIdParams & WithPrisma) => {
+  const auth = await requireAdmin(headers, set);
+  if (!auth.ok) return auth.response;
+
   const result = await toResult(
     prisma.customer.findUnique({
       where: { id: params.id },
@@ -131,11 +144,15 @@ export const getCustomerById = async ({
 };
 
 export const updateCustomer = async ({
+  headers,
   params,
   body,
   prisma,
   set,
 }: UpdateCustomerParams & WithPrisma) => {
+  const auth = await requireAdmin(headers, set);
+  if (!auth.ok) return auth.response;
+
   const data: Record<string, string> = {};
   if (body.name) data.name = body.name;
   if (body.phone) data.phone = body.phone;
@@ -172,10 +189,14 @@ export const updateCustomer = async ({
 };
 
 export const deleteCustomer = async ({
+  headers,
   params,
   prisma,
   set,
 }: DeleteCustomerParams & WithPrisma) => {
+  const auth = await requireAdmin(headers, set);
+  if (!auth.ok) return auth.response;
+
   const result = await toResult(
     prisma.customer.delete({
       where: { id: params.id },

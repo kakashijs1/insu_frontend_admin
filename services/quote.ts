@@ -41,6 +41,7 @@ const QuoteListItemSchema = z.object({
   ]),
   insuranceCompany: z.string().nullable(),
   premiumAmount: z.number().nullable(),
+  netPremiumAmount: z.number().nullable(),
   purchaseDate: z.union([z.string(), z.date()]).nullable(),
   expiryDate: z.union([z.string(), z.date()]).nullable(),
   paymentMethod: z.string().nullable(),
@@ -112,6 +113,7 @@ interface QuoteListResult {
 interface ReviewData {
   insuranceCompany?: string;
   premiumAmount?: number;
+  netPremiumAmount?: number;
   purchaseDate?: string;
   expiryDate?: string;
   paymentMethod?: PaymentMethod;

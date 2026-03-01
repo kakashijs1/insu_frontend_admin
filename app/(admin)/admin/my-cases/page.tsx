@@ -68,7 +68,8 @@ export default async function MyCasesPage() {
               <tr>
                 <th className="px-6 py-4">ลูกค้า</th>
                 <th className="px-6 py-4">รถยนต์</th>
-                <th className="px-6 py-4">เบี้ยประกัน</th>
+                <th className="px-6 py-4">เบี้ยรวม</th>
+                <th className="px-6 py-4">เบี้ยสุทธิ</th>
                 <th className="px-6 py-4">สถานะ</th>
                 <th className="px-6 py-4">วันที่</th>
                 <th className="px-6 py-4 text-right">รายละเอียด</th>
@@ -86,6 +87,7 @@ export default async function MyCasesPage() {
                     year: number;
                     tier: string;
                     premiumAmount: number | null;
+                    netPremiumAmount: number | null;
                     status: string;
                     createdAt: string | Date;
                   }) => {
@@ -116,6 +118,11 @@ export default async function MyCasesPage() {
                             ? formatCurrency(c.premiumAmount)
                             : "-"}
                         </td>
+                        <td className="px-6 py-4 text-text-dark font-medium">
+                          {c.netPremiumAmount
+                            ? formatCurrency(c.netPremiumAmount)
+                            : "-"}
+                        </td>
                         <td className="px-6 py-4">
                           <span
                             className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusInfo.cls}`}
@@ -140,7 +147,7 @@ export default async function MyCasesPage() {
                 )
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-16 text-center">
+                  <td colSpan={7} className="px-6 py-16 text-center">
                     <Briefcase
                       size={40}
                       className="mx-auto text-text-light mb-3"

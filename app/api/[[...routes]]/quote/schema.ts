@@ -4,6 +4,7 @@ export const quoteSchema = {
   "quote.review": t.Object({
     insuranceCompany: t.Optional(t.String()),
     premiumAmount: t.Optional(t.Number()),
+    netPremiumAmount: t.Optional(t.Number()),
     purchaseDate: t.Optional(t.String({ format: "date-time" })),
     expiryDate: t.Optional(t.String({ format: "date-time" })),
     paymentMethod: t.Optional(

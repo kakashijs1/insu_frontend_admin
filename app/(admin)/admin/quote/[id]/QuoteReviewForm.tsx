@@ -19,7 +19,7 @@ import {
   STATUS_CONFIG,
   PAYMENT_METHOD_LABELS,
 } from "@/types/quote";
-import type { QuoteStatus } from "@/types/quote";
+import type { QuoteStatus, PaymentMethod } from "@/types/quote";
 import { z } from "zod";
 
 const AdminSettableStatusSchema = z.enum([
@@ -30,6 +30,8 @@ const AdminSettableStatusSchema = z.enum([
   "REJECTED",
   "EXPIRED",
 ]);
+
+const PaymentMethodSchema = z.enum(["MOBILE_BANKING", "QR_PROMPTPAY"]);
 
 const PAYMENT_METHODS = [
   { value: "", label: "เลือกวิธีชำระเงิน" },
@@ -53,9 +55,11 @@ const UploadResponseSchema = z.object({
 interface QuoteReviewFormProps {
   quoteId: string;
   currentStatus: QuoteStatus;
+  referralCode: string | null;
   initialData: {
     insuranceCompany: string;
     premiumAmount: number;
+    netPremiumAmount: number;
     purchaseDate: string;
     expiryDate: string;
     paymentMethod: string;
@@ -104,6 +108,7 @@ async function uploadPaymentEvidence(file: File): Promise<string> {
 export default function QuoteReviewForm({
   quoteId,
   currentStatus,
+  referralCode,
   initialData,
 }: QuoteReviewFormProps) {
   const router = useRouter();
@@ -135,6 +140,7 @@ export default function QuoteReviewForm({
     async (_prev: FormState | null, formData: FormData) => {
       const insuranceCompany = String(formData.get("insuranceCompany") ?? "");
       const premiumAmount = String(formData.get("premiumAmount") ?? "");
+      const netPremiumAmount = String(formData.get("netPremiumAmount") ?? "");
       const purchaseDate = String(formData.get("purchaseDate") ?? "");
       const expiryDate = String(formData.get("expiryDate") ?? "");
       const paymentMethod = String(formData.get("paymentMethod") ?? "");
@@ -149,14 +155,28 @@ export default function QuoteReviewForm({
         }
       }
 
-      const reviewData: Record<string, string | number> = {};
+      const reviewData: {
+        insuranceCompany?: string;
+        premiumAmount?: number;
+        netPremiumAmount?: number;
+        purchaseDate?: string;
+        expiryDate?: string;
+        paymentMethod?: PaymentMethod;
+        paymentEvidence?: string;
+        policyDocumentUrl?: string;
+      } = {};
       if (insuranceCompany) reviewData.insuranceCompany = insuranceCompany;
       if (premiumAmount) reviewData.premiumAmount = parseFloat(premiumAmount);
+      if (netPremiumAmount)
+        reviewData.netPremiumAmount = parseFloat(netPremiumAmount);
       if (purchaseDate)
         reviewData.purchaseDate = new Date(purchaseDate).toISOString();
       if (expiryDate)
         reviewData.expiryDate = new Date(expiryDate).toISOString();
-      if (paymentMethod) reviewData.paymentMethod = paymentMethod;
+      if (paymentMethod) {
+        const parsed = PaymentMethodSchema.safeParse(paymentMethod);
+        if (parsed.success) reviewData.paymentMethod = parsed.data;
+      }
       if (paymentEvidenceUrl) reviewData.paymentEvidence = paymentEvidenceUrl;
       if (policyDocumentUrl) reviewData.policyDocumentUrl = policyDocumentUrl;
 
@@ -251,7 +271,7 @@ export default function QuoteReviewForm({
 
         <div className="space-y-2">
           <label className="text-xs font-semibold text-text-medium uppercase">
-            ราคาประกัน (บาท)
+            ราคาเบี้ยรวม (บาท)
           </label>
           <input
             type="number"
@@ -262,6 +282,25 @@ export default function QuoteReviewForm({
             className={inputClass}
           />
         </div>
+
+        {referralCode && (
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-text-medium uppercase">
+              ราคาเบี้ยสุทธิ (บาท)
+            </label>
+            <input
+              type="number"
+              name="netPremiumAmount"
+              defaultValue={initialData.netPremiumAmount || ""}
+              placeholder="0.00"
+              step="0.01"
+              className={inputClass}
+            />
+            <p className="text-[11px] text-text-light">
+              ใช้คำนวณค่าคอมมิชชั่นให้ Affiliate ({referralCode})
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">

@@ -1,6 +1,6 @@
 import { WithPrisma } from "@/db";
 import { toResult } from "lyney";
-import { extractUserIdFromHeaders } from "@/utils/extract-token";
+import { requireAdmin } from "@/utils/require-auth";
 import { TERMINAL_STATUSES, ALLOWED_TRANSITIONS } from "@/types/quote";
 import type { QuoteStatus, PaymentMethod } from "@/types/quote";
 
@@ -40,6 +40,7 @@ interface ReviewQuoteParams {
   body: {
     insuranceCompany?: string;
     premiumAmount?: number;
+    netPremiumAmount?: number;
     purchaseDate?: string;
     expiryDate?: string;
     paymentMethod?: "MOBILE_BANKING" | "QR_PROMPTPAY";
@@ -79,6 +80,7 @@ const QUOTE_SELECT = {
   installmentPlan: true,
   insuranceCompany: true,
   premiumAmount: true,
+  netPremiumAmount: true,
   purchaseDate: true,
   expiryDate: true,
   paymentMethod: true,
@@ -111,11 +113,8 @@ export const listQuotes = async ({
 }: ListQuotesParams & {
   headers: Record<string, string | undefined>;
 } & WithPrisma) => {
-  const auth = await extractUserIdFromHeaders(headers);
-  if (!auth.ok) {
-    set.status = 401;
-    return { success: false, message: "Unauthorized" };
-  }
+  const auth = await requireAdmin(headers, set);
+  if (!auth.ok) return auth.response;
 
   const page = Math.max(1, parseInt(query.page || "1", 10));
   const limit = Math.min(100, Math.max(1, parseInt(query.limit || "20", 10)));
@@ -181,11 +180,8 @@ export const getQuoteById = async ({
 }: QuoteByIdParams & {
   headers: Record<string, string | undefined>;
 } & WithPrisma) => {
-  const auth = await extractUserIdFromHeaders(headers);
-  if (!auth.ok) {
-    set.status = 401;
-    return { success: false, message: "Unauthorized" };
-  }
+  const auth = await requireAdmin(headers, set);
+  if (!auth.ok) return auth.response;
 
   await checkOverdueInstallments(prisma, params.id);
 
@@ -247,11 +243,8 @@ export const reviewQuote = async ({
   prisma,
   set,
 }: ReviewQuoteParams & WithPrisma) => {
-  const auth = await extractUserIdFromHeaders(headers);
-  if (!auth.ok) {
-    set.status = 401;
-    return { success: false, message: "Unauthorized" };
-  }
+  const auth = await requireAdmin(headers, set);
+  if (!auth.ok) return auth.response;
   const userId = auth.userId;
 
   const existing = await toResult(
@@ -285,6 +278,7 @@ export const reviewQuote = async ({
     reviewedAt: Date;
     insuranceCompany?: string;
     premiumAmount?: number;
+    netPremiumAmount?: number;
     purchaseDate?: Date;
     expiryDate?: Date;
     paymentMethod?: PaymentMethod;
@@ -299,6 +293,8 @@ export const reviewQuote = async ({
     updateData.insuranceCompany = body.insuranceCompany;
   if (body.premiumAmount !== undefined)
     updateData.premiumAmount = body.premiumAmount;
+  if (body.netPremiumAmount !== undefined)
+    updateData.netPremiumAmount = body.netPremiumAmount;
   if (body.purchaseDate !== undefined)
     updateData.purchaseDate = new Date(body.purchaseDate);
   if (body.expiryDate !== undefined)
@@ -333,11 +329,8 @@ export const updateQuoteStatus = async ({
   prisma,
   set,
 }: UpdateStatusParams & WithPrisma) => {
-  const auth = await extractUserIdFromHeaders(headers);
-  if (!auth.ok) {
-    set.status = 401;
-    return { success: false, message: "Unauthorized" };
-  }
+  const auth = await requireAdmin(headers, set);
+  if (!auth.ok) return auth.response;
   const userId = auth.userId;
 
   const existing = await toResult(
@@ -347,6 +340,7 @@ export const updateQuoteStatus = async ({
         status: true,
         insuranceCompany: true,
         premiumAmount: true,
+        netPremiumAmount: true,
         paymentEvidence: true,
         policyDocumentUrl: true,
         referralCode: true,
@@ -477,20 +471,25 @@ export const updateQuoteStatus = async ({
     );
 
     if (affiliate.ok && affiliate.data && affiliate.data.commissionRate) {
-      const commissionAmount =
-        existing.data.premiumAmount * (affiliate.data.commissionRate / 100);
+      const basePremium =
+        existing.data.netPremiumAmount ?? existing.data.premiumAmount;
 
-      await toResult(
-        prisma.affiliateCommission.create({
-          data: {
-            quoteRequestId: params.id,
-            affiliateId: affiliate.data.id,
-            premiumAmount: existing.data.premiumAmount,
-            commissionRate: affiliate.data.commissionRate,
-            commissionAmount,
-          },
-        }),
-      );
+      if (basePremium) {
+        const commissionAmount =
+          basePremium * (affiliate.data.commissionRate / 100);
+
+        await toResult(
+          prisma.affiliateCommission.create({
+            data: {
+              quoteRequestId: params.id,
+              affiliateId: affiliate.data.id,
+              premiumAmount: basePremium,
+              commissionRate: affiliate.data.commissionRate,
+              commissionAmount,
+            },
+          }),
+        );
+      }
     }
   }
 
@@ -514,11 +513,8 @@ export const recordInstallmentPayment = async ({
   prisma,
   set,
 }: RecordInstallmentParams & WithPrisma) => {
-  const auth = await extractUserIdFromHeaders(headers);
-  if (!auth.ok) {
-    set.status = 401;
-    return { success: false, message: "Unauthorized" };
-  }
+  const auth = await requireAdmin(headers, set);
+  if (!auth.ok) return auth.response;
 
   const installment = await toResult(
     prisma.installmentPayment.findUnique({
@@ -648,11 +644,8 @@ export const getQuoteStats = async ({
   headers: Record<string, string | undefined>;
   set: { status?: number | string };
 } & WithPrisma) => {
-  const auth = await extractUserIdFromHeaders(headers);
-  if (!auth.ok) {
-    set.status = 401;
-    return { success: false, message: "Unauthorized" };
-  }
+  const auth = await requireAdmin(headers, set);
+  if (!auth.ok) return auth.response;
 
   const [totalResult, pendingResult, approvedResult, affiliateResult] =
     await Promise.all([

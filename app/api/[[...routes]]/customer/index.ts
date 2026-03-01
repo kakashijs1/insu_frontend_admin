@@ -9,22 +9,23 @@ import {
 
 const customerRoutes = new Elysia()
   .use(prismaService)
-  .get("/customer", ({ query, prisma, set }) =>
-    listCustomers({ query, prisma, set }),
+  .get("/customer", ({ headers, query, prisma, set }) =>
+    listCustomers({ headers, query, prisma, set }),
   )
-  .get("/customer/:id", ({ params, prisma, set }) =>
-    getCustomerById({ params, prisma, set }),
+  .get("/customer/:id", ({ headers, params, prisma, set }) =>
+    getCustomerById({ headers, params, prisma, set }),
   )
-  .put("/customer/:id", ({ params, body, prisma, set }) =>
+  .put("/customer/:id", ({ headers, params, body, prisma, set }) =>
     updateCustomer({
+      headers,
       params,
       body: body as { name?: string; phone?: string },
       prisma,
       set,
     }),
   )
-  .delete("/customer/:id", ({ params, prisma, set }) =>
-    deleteCustomer({ params, prisma, set }),
+  .delete("/customer/:id", ({ headers, params, prisma, set }) =>
+    deleteCustomer({ headers, params, prisma, set }),
   );
 
 export default customerRoutes;

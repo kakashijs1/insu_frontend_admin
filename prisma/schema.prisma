@@ -68,7 +68,7 @@ enum PaymentMethod {
 model QuoteRequest {
   id               String         @id @default(uuid())
   customerId       String
-  customer         Customer       @relation(fields: [customerId], references: [id])
+  customer         Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
   tier             String
   brand            String
   model            String
@@ -85,6 +85,7 @@ model QuoteRequest {
   installments     InstallmentPayment[]
   insuranceCompany String?
   premiumAmount    Float?
+  netPremiumAmount Float?
   purchaseDate     DateTime?
   expiryDate       DateTime?
   paymentMethod    PaymentMethod?
